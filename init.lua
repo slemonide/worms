@@ -1,45 +1,63 @@
 local RADIUS = 1
 
-local nodes = {"group:crumbly", "group:cracky", "group:choppy", "group:snappy"}
+local nc = {}
 
-minetest.register_abm({
-    nodenames = {"default:nyancat"},
-    interval = 1.0,
-    chance = 1,
-    action = function(pos, node, active_object_count, active_object_count_wider)
-        local dir = minetest.facedir_to_dir(node.param2, true)
-        local p = {x=pos.x-dir.x,y=pos.y-dir.y,z=pos.z-dir.z}
+minetest.register_entity("worms:worm", {
+    physical = true,
+    collisionbox = {-0.5,-0.5,-0.5, 0.5,0.5,0.5},
+    visual = "cube",
+    visual_size = {x=1, y=1},
+    textures = {"default_nc_side.png", "default_nc_side.png", "default_nc_side.png",
+                "default_nc_side.png", "default_nc_back.png", "default_nc_front.png"},
+    on_rightclick = function(self,clicker)
+        if self.driver == nil then
+            self.driver = clicker
+            clicker:set_attach(self.object, "", {x=0,y=0,z=0}, {x=0,y=0,z=0})
+        elseif self.driver == clicker then
+            self.driver = nil
+            clicker:set_detach()
+        end
+    end,
+    on_activate = function(self)
+        self.object:setacceleration({x = 0, y = -9.81, z = 0})
+        nc.rotation = (math.random(1, 100) / math.pi)
+        local h_velocity = math.random(-5, 5)
+        local elevation = math.random(-1, 1)
+        nc.velocity = {x=h_velocity * math.cos(nc.rotation), y=elevation, z=h_velocity * math.sin(nc.rotation)}
+    end,
+    on_step = function(self, dtime)
+        self.object:setyaw(nc.rotation)
+        self.object:setvelocity(nc.velocity)
+
+        local pos = self.object:getpos()
+	local p = {x = math.floor(pos.x), y = math.floor(pos.y), z = math.floor(pos.z)}
+	local p_n = {x = math.floor(pos.x + math.cos(nc.rotation)), y = p.y, z = math.floor(pos.z + math.sin(nc.rotation))}
 
         -- Move forward and change direction if facing anything exept stone
-        local p_node = minetest.get_node(p)
-        if math.random(1,100) ~= 1 and
-        (p_node.name == "default:stone"
-        or p_node.name == "default:mossycobble"
-        or p_node.name == "air") then
-            minetest.set_node(p, node)
-            minetest.remove_node(pos)
-        else
-            node.param2 = math.random(0,22)
-            minetest.set_node(pos, node)
+        local p_node = minetest.get_node(p_n)
+        if math.random(1,100) == 1 and
+        (p_node.name ~= "default:stone"
+        or p_node.name ~= "default:mossycobble"
+        or p_node.name ~= "default:torch"
+        or p_node.name ~= "air") then
+	    nc.rotation = (math.random(1, 100) / math.pi)
+            local h_velocity = math.random(-5, 5)
+            local elevation = math.random(-1, 1)
+            nc.velocity = {x=h_velocity * math.cos(nc.rotation), y=elevation, z=h_velocity * math.sin(nc.rotation)}
         end
 
         -- Dig the way
         for dx=-RADIUS,RADIUS do
             for dz=-RADIUS,RADIUS do
                 for dy=-RADIUS,RADIUS do
-                    local npos = {x=pos.x + dx, y=pos.y + dy, z=pos.z + dz}
-                    local nnode = minetest.get_node(npos)
+                    local np = {x=p.x + dx, y=p.y + dy, z=p.z + dz}
+                    local nnode = minetest.get_node(np)
                     if nnode.name == "default:stone"
                     or nnode.name == "default:mossycobble" then
-                        -- Randomly create torches and ladders or air:
-                        if math.random(1, 20) == 1 then
-                            minetest.set_node(npos, {name="default:torch"})
-                        elseif math.random(1, 10) == 1 then
-                            minetest.set_node(npos, {name="default:ladder"})
-                        elseif math.random(1, 100) == 1 then
-                            minetest.set_node(npos, {name="default:nyancat_rainbow"})
+                        if math.random(1, 30) == 1 then
+                            minetest.set_node(np, {name="default:torch"})
                         else
-                            minetest.remove_node(npos)
+                            minetest.remove_node(np)
                         end
                     end
                 end
@@ -48,7 +66,7 @@ minetest.register_abm({
 
         -- Create mossy walls:
         while true do
-            local stone = minetest.find_node_near(pos, RADIUS + 1, "default:stone")
+            local stone = minetest.find_node_near(p, RADIUS + 1, "default:stone")
             if not stone then
                 return
             end
@@ -56,4 +74,3 @@ minetest.register_abm({
         end
     end,
 })
-
