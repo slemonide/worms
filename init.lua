@@ -74,3 +74,15 @@ minetest.register_entity("worms:worm", {
         end
     end,
 })
+
+-- Turn node nyancats into object nyancats
+minetest.register_abm({
+    nodenames = {"default:nyancat"},
+    interval = 1.0,
+    chance = 1,
+    action = function(pos, node, active_object_count, active_object_count_wider)
+        minetest.add_entity(pos, "worms:worm")
+        minetest.remove_node(pos)
+    end,
+})
+
