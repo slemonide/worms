@@ -4,6 +4,7 @@ local nc = {}
 
 minetest.register_entity("worms:worm", {
     physical = true,
+    weight = 30,
     collisionbox = {-0.5,-0.5,-0.5, 0.5,0.5,0.5},
     visual = "cube",
     visual_size = {x=1, y=1},
@@ -12,38 +13,35 @@ minetest.register_entity("worms:worm", {
     on_rightclick = function(self,clicker)
         if self.driver == nil then
             self.driver = clicker
-            clicker:set_attach(self.object, "", {x=0,y=0,z=0}, {x=0,y=0,z=0})
+            clicker:set_attach(self.object, "", {x=0,y=5,z=0}, {x=0,y=0,z=0})
         elseif self.driver == clicker then
             self.driver = nil
             clicker:set_detach()
         end
     end,
     on_activate = function(self)
-        self.object:setacceleration({x = 0, y = -9.81, z = 0})
-        nc.rotation = (math.random(1, 100) / math.pi)
-        local h_velocity = math.random(-5, 5)
-        local elevation = math.random(-1, 1)
-        nc.velocity = {x=h_velocity * math.cos(nc.rotation), y=elevation, z=h_velocity * math.sin(nc.rotation)}
+        local pos = self.object:getpos()
+        self.object:setacceleration({x = 0, y = -8, z = 0})
+        nc.rotation = pos.z * pos.y / (math.pi * 10)
+        local h_velocity = 5 * math.sin(pos.x * pos.y / (math.pi * 10))
+        local elevation = 2 * math.sin(pos.z * pos.x / (math.pi * 10))
+        nc.velocity = {x=h_velocity * math.sin(nc.rotation), y=elevation, z=h_velocity * math.cos(nc.rotation)}
     end,
     on_step = function(self, dtime)
         self.object:setyaw(nc.rotation)
         self.object:setvelocity(nc.velocity)
 
         local pos = self.object:getpos()
-	local p = {x = math.floor(pos.x), y = math.floor(pos.y), z = math.floor(pos.z)}
+	local p = {x = math.floor(pos.x), y = math.floor(pos.y) + RADIUS, z = math.floor(pos.z)}
 	local p_n = {x = math.floor(pos.x + math.cos(nc.rotation)), y = p.y, z = math.floor(pos.z + math.sin(nc.rotation))}
 
         -- Move forward and change direction if facing anything exept stone
         local p_node = minetest.get_node(p_n)
-        if math.random(1,100) == 1 and
-        (p_node.name ~= "default:stone"
-        or p_node.name ~= "default:mossycobble"
-        or p_node.name ~= "default:torch"
-        or p_node.name ~= "air") then
-	    nc.rotation = (math.random(1, 100) / math.pi)
-            local h_velocity = math.random(-5, 5)
-            local elevation = math.random(-1, 1)
-            nc.velocity = {x=h_velocity * math.cos(nc.rotation), y=elevation, z=h_velocity * math.sin(nc.rotation)}
+        if pos.x == pos.y then
+            nc.rotation = pos.z * pos.y / (math.pi * 10)
+            local h_velocity = 5 * math.sin(pos.x * pos.y / (math.pi * 10))
+            local elevation = 2 * math.sin(pos.z * pos.x / (math.pi * 10))
+            nc.velocity = {x=h_velocity * math.sin(nc.rotation), y=elevation, z=h_velocity * math.cos(nc.rotation)}
         end
 
         -- Dig the way
@@ -54,11 +52,7 @@ minetest.register_entity("worms:worm", {
                     local nnode = minetest.get_node(np)
                     if nnode.name == "default:stone"
                     or nnode.name == "default:mossycobble" then
-                        if math.random(1, 30) == 1 then
-                            minetest.set_node(np, {name="default:torch"})
-                        else
-                            minetest.remove_node(np)
-                        end
+                        minetest.remove_node(np)
                     end
                 end
             end
@@ -86,3 +80,20 @@ minetest.register_abm({
     end,
 })
 
+-- Place torches
+minetest.register_abm({
+    nodenames = {"air"},
+    neighbors = {"default:mossycobble"},
+    interval = 1.0,
+    chance = 1,
+    action = function(pos, node, active_object_count, active_object_count_wider)
+        local above = {x = pos.x, y = pos.y + 1, z = pos.z}
+        local above_node = minetest.get_node(above)
+        local worm = minetest.get_objects_inside_radius(pos, 2 * RADIUS)
+        local another_torch = minetest.find_node_near(pos, 3, {"default:torch"})
+
+        if above_node.name == "default:mossycobble" and worm and not another_torch then
+            minetest.set_node(pos, {name="default:torch"})
+        end        
+    end,
+})
