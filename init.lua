@@ -32,11 +32,15 @@ minetest.register_entity("worms:worm", {
 		local pos = self.object:getpos()
 --		self.object:setacceleration({x = 0, y = -4, z = 0})
 		nc.rotation = 2*math.pi*math.random() -- Random angle
-		local h_velocity = 4
+		local h_velocity = 2
 		local elevation = math.sin(2*math.pi*math.random())
 		nc.velocity = {x=h_velocity * math.sin(nc.rotation), y=elevation, z=h_velocity * math.cos(nc.rotation)}
 	end,
 	on_step = function(self, dtime)
+		if math.random(4) == 1 then
+			return
+		end
+
 		self.object:setyaw(nc.rotation)
 		self.object:setvelocity(nc.velocity)
 
@@ -90,8 +94,8 @@ minetest.register_entity("worms:worm", {
 -- Turn node nyancats into object nyancats
 minetest.register_abm({
 	nodenames = {"default:nyancat"},
-	interval = 1.0,
-	chance = 1,
+	interval = 5,
+	chance = 4,
 	action = function(pos, node, active_object_count, active_object_count_wider)
 		minetest.add_entity(pos, "worms:worm")
 		minetest.remove_node(pos)
@@ -102,19 +106,59 @@ minetest.register_abm({
 minetest.register_abm({
 	nodenames = {"air"},
 	neighbors = {"default:mossycobble"},
-	interval = 1.0,
-	chance = 1,
+	interval = 6,
+	chance = 5,
 	action = function(pos, node, active_object_count, active_object_count_wider)
+		local worm = minetest.get_objects_inside_radius(pos, 2 * RADIUS)
+		if not worm then
+			return
+		end
+
 		local above = {x = pos.x, y = pos.y + 1, z = pos.z}
 		local above_node = minetest.get_node(above)
-		local worm = minetest.get_objects_inside_radius(pos, 2 * RADIUS)
 		local another_torch = minetest.find_node_near(pos, 3, {"default:torch"})
 
 	if (above_node.name == "default:mossycobble"
 	or above_node.name == "default:cobble"
 	or above_node.name == "default:stonebrick")
-	and worm and not another_torch then
+	and not another_torch then
 			minetest.set_node(pos, {name="default:torch"})
-		end		
+	end		
+	end,
+})
+
+local grasses = {
+		"default:grass_1",
+		"default:grass_2",
+		"default:grass_3",
+		"default:grass_4",
+		"default:grass_5",
+		"default:dry_grass_1",
+		"default:dry_grass_2",
+		"default:dry_grass_3",
+		"default:dry_grass_4",
+		"default:dry_grass_5"
+		}
+
+-- Place grasses
+minetest.register_abm({
+	nodenames = {"air"},
+	neighbors = {"default:mossycobble"},
+	interval = 6,
+	chance = 5,
+	action = function(pos, node, active_object_count, active_object_count_wider)
+		local worm = minetest.get_objects_inside_radius(pos, 2 * RADIUS)
+		if not worm then
+			return
+		end
+
+		local below = {x = pos.x, y = pos.y - 1, z = pos.z}
+		local below_node = minetest.get_node(below)
+
+	if below_node.name == "default:mossycobble"
+	or below_node.name == "default:cobble" then
+			local grass = grasses[math.random(#grasses)]
+			minetest.set_node(pos, {name = grass})
+	end		
 	end,
 })
