@@ -154,9 +154,9 @@ minetest.register_abm({
 
 		local below = {x = pos.x, y = pos.y - 1, z = pos.z}
 		local below_node = minetest.get_node(below)
+		local igniter = minetest.find_node_near(pos, 4, {"group:igniter"})
 
-	if below_node.name == "default:mossycobble"
-	or below_node.name == "default:cobble" then
+	if below_node.name == "default:mossycobble" and not igniter then
 			local grass = grasses[math.random(#grasses)]
 			minetest.set_node(pos, {name = grass})
 	end		
