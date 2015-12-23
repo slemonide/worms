@@ -52,7 +52,7 @@ minetest.register_entity("worms:worm", {
 		local p_node = minetest.get_node(p_n)
 		if math.random(100) == 1 then
 		nc.rotation = 2*math.pi*math.random() -- Random angle
-			local h_velocity = 7
+			local h_velocity = 2
 			local elevation = math.sin(2*math.pi*math.random())
 			nc.velocity = {x=h_velocity * math.sin(nc.rotation), y=h_velocity * elevation, z=h_velocity * math.cos(nc.rotation)}
 		end
