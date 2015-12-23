@@ -116,7 +116,7 @@ minetest.register_abm({
 
 		local above = {x = pos.x, y = pos.y + 1, z = pos.z}
 		local above_node = minetest.get_node(above)
-		local another_torch = minetest.find_node_near(pos, 3, {"default:torch"})
+		local another_torch = minetest.find_node_near(pos, 3, {"default:torch", "group:torch"})
 
 	if (above_node.name == "default:mossycobble"
 	or above_node.name == "default:cobble"
