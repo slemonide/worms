@@ -36,7 +36,6 @@ minetest.register_entity("worms:worm", {
 	end,
 	on_activate = function(self)
 		local pos = self.object:getpos()
---		self.object:setacceleration({x = 0, y = -4, z = 0})
 		nc.rotation = 2*math.pi*math.random() -- Random angle
 		local h_velocity = 2
 		local elevation = math.sin(2*math.pi*math.random())
@@ -69,8 +68,10 @@ minetest.register_entity("worms:worm", {
 				for dy=-RADIUS,RADIUS do
 					local np = {x=p.x + dx, y=p.y + dy, z=p.z + dz}
 					local nnode = minetest.get_node(np)
-					if nnode.name == "default:stone" then
---					or nnode.name == "default:mossycobble" then
+					if nnode.name == "default:stone"
+					or nnode.name == "default:mossycobble"
+                    or nnode.name == "default:cobble"
+                    or nnode.name == "default:stonebrick" then
 						minetest.remove_node(np)
 					end
 				end
