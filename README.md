@@ -6,7 +6,7 @@ This is a Minetest/Freeminer mod that causes Nyan Cat nodes to carve caves throu
 - Textures: WTFPL
 
 ## Dependencies
-- default
+- pbj_pup
 
 ## Forum Topic
 - https://forum.minetest.net/viewtopic.php?t=11735
