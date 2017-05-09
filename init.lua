@@ -8,8 +8,14 @@ minetest.register_entity("worms:worm", {
 	collisionbox = {-0.5,-0.5,-0.5, 0.5,0.5,0.5},
 	visual = "cube",
 	visual_size = {x=1, y=1},
-	textures = {"default_nc_side.png", "default_nc_side.png", "default_nc_side.png",
-				"default_nc_side.png", "default_nc_back.png", "default_nc_front.png"},
+	textures = {
+		"pbj_pup_sides.png",
+		"pbj_pup_jelly.png",
+		"pbj_pup_sides.png",
+		"pbj_pup_sides.png",
+		"pbj_pup_back.png",
+		"pbj_pup_front.png"
+	},
 	on_rightclick = function(self,clicker)
 		if self.driver == nil then
 			self.driver = clicker
@@ -21,9 +27,9 @@ minetest.register_entity("worms:worm", {
 	end,
 	on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir)
 		if puncher:is_player() and puncher:get_inventory() then
-			puncher:get_inventory():add_item("main", "default:nyancat")
+			puncher:get_inventory():add_item("main", "pbj_pup:pbj_pup")
 			if math.random(3) == 1 then
-				puncher:get_inventory():add_item("main", "default:nyancat_rainbow")
+				puncher:get_inventory():add_item("main", "pbj_pup:pbj_pup_candies")
 			end
 			self.object:remove()
 		end
@@ -93,7 +99,7 @@ minetest.register_entity("worms:worm", {
 
 -- Turn node nyancats into object nyancats
 minetest.register_abm({
-	nodenames = {"default:nyancat"},
+	nodenames = {"pbj_pup:pbj_pup"},
 	interval = 5,
 	chance = 4,
 	action = function(pos, node, active_object_count, active_object_count_wider)
